@@ -1,11 +1,6 @@
 # pthread_demo
 Client/Server pthreads demo code. Client sends files from client dir to server. Server saves file to it's own directory
 
-## Description 
-
-Design and implement a multi-threaded or multi-process client–server data pipeline in C that processes and transfers files concurrently using TCP sockets. The pipeline should handle N files (e.g., 10,000), with each file having a random size of up to 10 MB. Key requirements include:
-
-
 ## Get the code
 git clone https://github.com/jdmclean/pthreads_demo.git
 
@@ -40,42 +35,43 @@ make
 |                             |                  |                             |
 | main()                      |                  | main()                      |
 |                             |                  |                             |
-| +-----------------------+   |                  |                             |
-| | queue of file names   |   |                  |                             |
-| |  -file1               |   |                  |                             |
-| |  -file2               |   |                  |                             |
-| |  -file3               |   |                  |                             |
-| |  .                    |   |                  |                             |
-| |  .                    |   |                  |                             |
-| |  .                    |   |                  |                             |
-| |  -fileN               |   |                  |                             |
-| +-----------------------+   |                  |                             | 
-|      !                      |                  |                             |
-|      !                      |                  |                             |
-|     \^/                     |                  |                             |
-|      .                      |                  |                             |
-| +-----------------------+   |                  |    +---------------------+  | 
-| | thread pool           |   |                  |    | thread pool         |  |   
-| |                       |   |                  |    |                     |  |        
-| |  -thd1                +-------------------------->+   -thd1             |  |
+| +-----------------------+   |                  |    +---------------------+  |  
+| | queue of file names   |   |                  |    | socket queue        |  |   
+| |  -file1               |   |         connect  |    |   -sockFdA          |  |
+| |  -file2               |   |         +------------>+   -sockFdB          |  |
+| |  -file3               |   |         |        |    |   -sockFdB          |  |
+| |  .                    |   |         |        |    |   -sockFdB          |  |
+| |  .                    |   |         |        |    |   -.                |  |
+| |  .                    |   |         |        |    |   -.                |  |
+| |  -fileN               |   |         |        |    |   -.                |  |
+| +----+------------------+   |         |        |    +----+----------------+  |   
+|      !                      |         |        |         |                   |
+|      |                      |         |        |         |                   |
+|      |                      |         |        |         |                   | 
+|     \^/                     |         |        |        \^/                  |
+|      .                      |         |        |         .                   |
+| +----+------------------+   |         |        |    +----+----------------+  | 
+| | thread pool           |   |         |        |    | thread pool         |  |   
+| |                       |   |         | send   |    |                     |  |        
+| |  -thd1                +-------------+------------>|   -thd1             |  |
 | |  -thd2                |   |                  |    |   -thd2             |  |
 | |  -thd3                |   |                  |    |   -thd3             |  |
 | |                       |   |                  |    |                     |  |
-| +-----------------------+   |                  |    +---------------------+  |
+| +----+------------------+   |                  |    +-----+---------------+  |
 |      .                      |                  |          !                  |
 |     /^\                     |                  |          !                  |
 |      !                      |                  |          !                  |
 |      !                      |                  |         \./                 |
 |      !                      |                  |          .                  |
-| +-----------------------+   |                  |    +---------------------+  |
+| +----+------------------+   |                  |    +-----+---------------+  |
 | | disk                  |   |                  |    | disk                |  |
 | |  -file1               +   |                  |    |   -file1            |  |
-| |  -file2               |   |                  |    |   -file1            |  |
-| |  -file3               |   |                  |    |   -file1            |  |
+| |  -file2               |   |                  |    |   -file2            |  |
+| |  -file3               |   |                  |    |   -file3            |  |
 | |  .                    |   |                  |    |   .                 |  |
 | |  .                    |   |                  |    |   .                 |  |
 | |  .                    |   |                  |    |   .                 |  |
-| |  -fileN               |   |                  |    |   -file1            |  |
+| |  -fileN               |   |                  |    |   -fileN            |  |
 | +-----------------------+   |                  |    +---------------------+  |
 |                             |                  |                             |
 +-----------------------------+                  +-----------------------------+
@@ -97,7 +93,6 @@ make
     ./file_transfer_client -d send_dir
 9.) Once complete run md5_check.sh to verify transfers were successful. e.g.:
     . ~/pthreads_demo/scripts/md5_check.sh ./send_dir ../server/receive_dir
-```
 
 
 
